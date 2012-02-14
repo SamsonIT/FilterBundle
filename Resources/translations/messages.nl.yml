@@ -1,0 +1,6 @@
+filter:
+  filter: filter
+  remember: bewaren
+  manage_presets: presets beheren
+  save_preset: preset opslaan
+  load_preset: preset laden

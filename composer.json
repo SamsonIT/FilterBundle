@@ -1,0 +1,9 @@
+{
+    "name": "samson/filter-bundle",
+    "autoload": {
+        "psr-0": {
+            "Samson\\Bundle\\FilterBundle": ""
+        }
+    },
+    "target-dir": "Samson/Bundle/FilterBundle"
+}
