@@ -5,5 +5,9 @@
             "Samson\\Bundle\\FilterBundle": ""
         }
     },
+    "require": {
+        "doctrine/orm": "2.3.*",
+        "symfony/framework-bundle": "2.1.*"
+    },
     "target-dir": "Samson/Bundle/FilterBundle"
 }
