@@ -4,16 +4,13 @@ namespace Samson\Bundle\FilterBundle\Form\Type;
 
 use Samson\Bundle\FilterBundle\Filter\Filter;
 use Samson\Bundle\FilterBundle\Form\EventListener\PresetListener;
-use Samson\Bundle\FilterBundle\Form\EventListener\RememberListener;
 use Symfony\Component\DependencyInjection\Container;
 use Symfony\Component\Form\AbstractType;
-use Symfony\Component\Form\Event\FilterDataEvent;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\FormEvent;
 use Symfony\Component\Form\FormEvents;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\Form\FormView;
-use Symfony\Component\Form\FormViewInterface;
 use Symfony\Component\OptionsResolver\OptionsResolverInterface;
 
 class FilterType extends AbstractType
@@ -29,6 +26,7 @@ class FilterType extends AbstractType
 
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
+        $filter = $this->filter;
         $filterType = $options['filter_type'];
 
         $filterData = $options['filter_data'];
@@ -44,7 +42,53 @@ class FilterType extends AbstractType
             $filterData = $options['filter_data'];
         }
 
-        $builder->add('data', $filterType, array('data' => $filterData, 'data_class' => get_class($options['filter_data'])));
+        $request = $this->container->get('request');
+        $presetListener = new PresetListener($request, $filter);
+        $builder->addEventSubscriber($presetListener);
+        $factory = $builder->getFormFactory();
+        $builder->addEventListener(FormEvents::SET_DATA, function(FormEvent $e) use ($factory, $options, $filter) {
+                $dataForm = $factory->createNamed('data', $options['filter_type'], null, array(
+                    'data_class' => get_class($options['filter_data'])
+                    ));
+
+
+                $childOptions = $dataForm->getConfig()->getOptions();
+
+                if (isset($childOptions['data']) && null !== $childOptions['data']) {
+                    $filterData = $childOptions['data'];
+                } else {
+                    $filterData = $options['filter_data'];
+                }
+
+                $rememberedData = $filter->getFilterValuesForCurrentUser($dataForm);
+                if (null !== $rememberedData) {
+
+                    if ($rememberedData->getRemember()) {
+                        $filterData = $filter->deserialize($rememberedData->getData());
+                    }
+                }
+
+                // HACK: Not sure why, but without this, the form, though filtering correctly, will show up empty
+                $refl = new \ReflectionProperty('Symfony\Component\Form\FormConfigBuilder', 'dataLocked');
+                $refl->setAccessible(true);
+                $refl->setValue($dataForm->getConfig(), false);
+                $dataForm->setData($filterData);
+                $refl->setValue($dataForm->getConfig(), true);
+                // /HACK
+
+                $e->getForm()->add($dataForm);
+
+                $choiceList = $filter->getPresetChoiceList($e->getForm()->get('data'));
+                $e->getForm()->add($factory->createNamed('preset', 'choice', null, array(
+                        'choice_list' => $choiceList,
+                        'required' => true
+                    )));
+                $e->getForm()->add($factory->createNamed('savePreset', 'hidden'));
+                $e->getForm()->add($factory->createNamed('loadPreset', 'hidden'));
+
+                $e->setData(array('data' => $filterData));
+            });
+
 
         if ($options['use_remember']) {
             $builder->add('remember', 'checkbox', array(
@@ -52,35 +96,11 @@ class FilterType extends AbstractType
                 'required' => false
             ));
         }
-        $builder->get('data')->addEventSubscriber(new RememberListener($this->container->get('request'), $this->filter, $filterType));
 
-        if ($options['use_preset']) {
-            $choiceList = $this->filter->getPresetChoiceList($filterType);
-
-            $builder->add('preset', 'choice', array(
-                'choice_list' => $choiceList,
-                'required' => true
-            ));
-
-            $builder->add('savePreset', 'hidden');
-            $builder->add('loadPreset', 'hidden');
-
-            $listener = new PresetListener($this->container->get('request'), $choiceList, $this->filter, $filterType);
-            $builder->addEventSubscriber($listener);
-        }
-
-        $filter = $this->filter;
-        $builder->addEventListener(FormEvents::POST_BIND, function(FormEvent $event) use ($filter, $filterType) {
-                $data = $event->getData();
-                $filter->saveFilterValues($data, $filterType);
-            });
-
-        $builder->addEventListener(FormEvents::PRE_SET_DATA, function(FilterDataEvent $e) use ($filterData) {
+        $builder->addEventListener(FormEvents::POST_BIND, function(FormEvent $e) use ($filter, $filterType) {
                 $data = $e->getData();
-
-                $data['data'] = $filterData;
-                $e->setData($data);
-            }, 256);
+                $filter->saveFilterValues($data, $e->getForm()->get('data'));
+            });
 
         $builder->setAttribute('filterType', get_class($filterType));
     }

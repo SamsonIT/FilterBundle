@@ -62,10 +62,10 @@ class Filter
         if ($request->request->has($filterForm->getName())) {
             $filterForm->bind($request->request->get($filterForm->getName()));
         }
-        if($qb instanceof QueryBuilder ){
+        if ($qb instanceof QueryBuilder) {
             $qb = array($qb);
         }
-        
+
         $data = $filterForm->getData();
 
         if (array_key_exists('remember', $data) && $data['remember']) {
@@ -82,16 +82,17 @@ class Filter
             }
         }
 
-        foreach($qb as $currentQb){
-            $this->filter($filterForm->getData(), $filterForm->get('data')->getData(), $currentQb);
+        foreach ($qb as $currentQb) {
+            $this->filter($data, $currentQb);
         }
     }
 
-    public function filter($data, $filterData, QueryBuilder $qb)
+    public function filter($data, QueryBuilder $qb)
     {
-        if (null === $data || null === $filterData) {
+        if (null === $data) {
             return $qb;
         }
+        $filterData = $data['data'];
 
         $reflectionObject = new ReflectionObject($filterData);
 
@@ -115,8 +116,8 @@ class Filter
         }
 
         foreach ($properties as $property) {
-            $propertyPath = new PropertyPath($property->getName());
-            $value = $propertyPath->getValue($filterData);
+            $valuePropertyPath = new PropertyPath($property->getName());
+            $value = $valuePropertyPath->getValue($filterData);
 
             foreach ($this->reader->getPropertyAnnotations($property) as $annotation) {
                 if ($annotation instanceof FieldSearch) {
@@ -151,10 +152,10 @@ class Filter
                         if (null === $expr)
                             continue;
 
-                        foreach($parameters as $key => $value) {
+                        foreach ($parameters as $key => $value) {
                             $qb->setParameter($key, $value);
                         }
-                        
+
                         if ($having) {
                             $havingExprs[] = $expr;
                         } else {
@@ -192,12 +193,12 @@ class Filter
         return array($alias, $propertyPath);
     }
 
-    public function saveFilterValues(array $data, $filterType)
+    public function saveFilterValues(array $data, Form $filterDataForm)
     {
         $em = $this->doctrine->getEntityManager();
         $user = $this->securityContext->getToken()->getUser();
 
-        $entity = $this->getFilterValuesForCurrentUser($filterType);
+        $entity = $this->getFilterValuesForCurrentUser($filterDataForm);
 
         $remember = $this->config['use_remember'] ? $data['remember'] : true;
         $entity->setRemember($remember);
@@ -212,32 +213,32 @@ class Filter
         return $entity;
     }
 
-    public function getFilterValues($user, $filterType)
+    public function getFilterValues($user, Form $filterDataForm)
     {
         $em = $this->doctrine->getEntityManager();
         $er = $em->getRepository('SamsonFilterBundle:FilterValues');
 
-        $values = $er->findOneBy(array('user' => $user->getId(), 'filterType' => get_class($filterType)));
+        $values = $er->findOneBy(array('user' => $user->getId(), 'filterType' => $filterDataForm->getConfig()->getType()->getName()));
         if (null === $values) {
 
             $values = new FilterValues();
             $values->setUser($user);
-            $values->setFilterType(get_class($filterType));
+            $values->setFilterType($filterDataForm->getConfig()->getType()->getName());
         }
         return $values;
     }
 
-    public function getFilterValuesForCurrentUser($filterType)
+    public function getFilterValuesForCurrentUser(Form $filterDataForm)
     {
         $user = $this->securityContext->getToken()->getUser();
-        return $this->getFilterValues($user, $filterType);
+        return $this->getFilterValues($user, $filterDataForm);
     }
 
-    public function savePreset($filterType, FilterValues $data)
+    public function savePreset(Form $filterDataForm, FilterValues $data)
     {
 
         $filterPreset = new FilterPreset();
-        $filterPreset->setFilterType(get_class($filterType));
+        $filterPreset->setFilterType($filterDataForm->getConfig()->getType()->getName());
         $filterPreset->setData($data->getData());
 
         $this->session->set('filter_preset', $filterPreset);
@@ -247,12 +248,12 @@ class Filter
         die();
     }
 
-    public function loadPreset($filterType, $presetName)
+    public function loadPreset(Form $filterDataForm, $presetName)
     {
         if ($presetName == '_reset_') {
-            $opt = $filterType->getDefaultOptions(array());
+            $opt = $filterDataForm->getConfig()->getOptions();
             if (!@$opt['data_class']) {
-                $dataClass = str_replace('Filter\Type', 'Filter\Data', get_class($filterType));
+                $dataClass = str_replace('Filter\Type', 'Filter\Data', get_class($filterDataForm->getConfig()->getType()));
                 $dataClass = str_replace('FilterType', 'FilterData', $dataClass);
             } else {
                 $dataClass = $opt['data_class'];
@@ -264,7 +265,8 @@ class Filter
             }
             $preset = $this->serialize($preset);
         } else {
-            $presets = $this->getPresetsForUser($filterType, $this->securityContext->getToken()->getUser());
+            $presets = $this->getPresetsForUser($filterDataForm, $this->securityContext->getToken()->getUser());
+
             if (array_key_exists($presetName, $presets)) {
                 $preset = $presets[$presetName]->getData();
             }
@@ -272,22 +274,15 @@ class Filter
         return $preset;
     }
 
-    public function getPresetsForUser($filterType, AbstractUser $user)
+    public function getPresetsForUser(Form $filterDataForm, AbstractUser $user)
+    {
+        return $this->getFixedPresets($filterDataForm) + $this->getConfiguredPresetsForUser($filterDataForm->getConfig()->getType()->getName(), $user);
+    }
+
+    public function getFixedPresets(Form $filterDataForm)
     {
         $results = array();
-
-        $er = $this->doctrine->getEntityManager()->getRepository('SamsonFilterBundle:FilterPreset');
-        $qb = $er->createQueryBuilder('p');
-        $qb->where($qb->expr()->andx(
-                $qb->expr()->eq('p.filterType', '?1'), $qb->expr()->orx(
-                    $qb->expr()->eq('p.public', '?2'), $qb->expr()->eq('p.user', '?3')
-                )
-            ));
-        $qb->setParameters(array(1 => get_class($filterType), 2 => true, 3 => $user->getId()));
-        foreach ($qb->getQuery()->getResult() as $result) {
-            $results[$result->getId()] = $result;
-        }
-        $typeOptions = $filterType->getDefaultOptions(array());
+        $typeOptions = $filterDataForm->getConfig()->getOptions();
         if (isset($typeOptions['presets'])) {
             foreach ($typeOptions['presets'] as $name => $preset) {
                 $filterPreset = new FilterPreset();
@@ -297,14 +292,34 @@ class Filter
                 $results[$name] = $filterPreset;
             }
         }
+        return $results;
+    }
+
+    public function getConfiguredPresetsForUser($filterName, AbstractUser $user)
+    {
+
+        $results = array();
+
+        $er = $this->doctrine->getEntityManager()->getRepository('SamsonFilterBundle:FilterPreset');
+        $qb = $er->createQueryBuilder('p');
+        $qb->where($qb->expr()->andx(
+                $qb->expr()->eq('p.filterType', '?1'), $qb->expr()->orx(
+                    $qb->expr()->eq('p.public', '?2'), $qb->expr()->eq('p.user', '?3')
+                )
+            ));
+        $qb->setParameters(array(1 => $filterName, 2 => true, 3 => $user->getId()));
+
+        foreach ($qb->getQuery()->getResult() as $result) {
+            $results[$result->getId()] = $result;
+        }
 
         return $results;
     }
 
-    public function getPresetChoiceList($filterType)
+    public function getPresetChoiceList(Form $filterDataForm)
     {
         $user = $this->securityContext->getToken()->getUser();
-        return new FilterPresetChoiceList($this->getPresetsForUser($filterType, $user));
+        return new FilterPresetChoiceList($this->getPresetsForUser($filterDataForm, $user));
     }
 
     public function reattach($entity)

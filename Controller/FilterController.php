@@ -73,17 +73,14 @@ class FilterController extends Controller
     public function managePresetsAction()
     {
         $filterType = $this->getRequest()->query->get('filterType');
+        $filterType = new $filterType;
 
         $filter = $this->get('samson.filter');
 
         $user = $this->get('security.context')->getToken()->getUser();
 
-        $presets = array();
-        foreach ($filter->getPresetsForUser(new $filterType, $user) as $preset) {
-            if (!$preset->isFixed()) {
-                $presets[] = $preset;
-            }
-        }
+        $presets = $filter->getConfiguredPresetsForUser($filterType->getName(), $user);
+
         $form = $this->createForm('editable_grid', $presets, array(
             'type' => new FilterPresetType(),
             'allow_delete' => true
@@ -97,6 +94,6 @@ class FilterController extends Controller
             }
         }
 
-        return array('filterType' => $filterType, 'form' => $form->createView());
+        return array('filterType' => get_class($filterType), 'form' => $form->createView());
     }
 }
