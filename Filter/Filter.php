@@ -19,6 +19,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\Routing\Router;
 use Symfony\Component\Security\Core\SecurityContext;
+use Symfony\Component\Form\Util\PropertyPath;
 
 class Filter
 {
@@ -114,11 +115,8 @@ class Filter
         }
 
         foreach ($properties as $property) {
-            if ($property->isPublic()) {
-                $value = $filterData->{$property->name};
-            } else {
-                $value = $filterData->{'get'.ucfirst($property->getName())}();
-            }
+            $propertyPath = new PropertyPath($property->getName());
+            $value = $propertyPath->getValue($filterData);
 
             foreach ($this->reader->getPropertyAnnotations($property) as $annotation) {
                 if ($annotation instanceof FieldSearch) {
