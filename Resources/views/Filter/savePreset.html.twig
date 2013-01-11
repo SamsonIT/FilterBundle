@@ -1,0 +1,8 @@
+{% extends '::base.html.twig' %}
+{% block pagetitle %}Save your preset{% endblock pagetitle %}
+{% block body %}
+<form action="{{ path("filter_savePreset", { "return_path": return_path }) }}" method="POST" enctype="{{ form_enctype(form) }}">
+{{ form_widget(form) }}
+<input type="submit" value="Save preset">
+</form>
+{% endblock %}

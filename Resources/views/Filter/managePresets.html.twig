@@ -1,0 +1,12 @@
+{% extends '::base.html.twig' %}
+
+{% block pagetitle "Manage your presets" %}
+{% block pagesubtitle filterType %}
+
+{% block body %}
+
+
+<form action="{{ path("filter_managePresets", { "filterType": filterType }) }}" method="POST" enctype="{{ form_enctype(form) }}">
+{{ form_widget(form) }}
+</form>
+{% endblock %}

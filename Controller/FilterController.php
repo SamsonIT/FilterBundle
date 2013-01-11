@@ -3,9 +3,9 @@
 namespace Samson\Bundle\FilterBundle\Controller;
 
 use Samson\Bundle\FrameworkBundle\Dialog\CloseDialogResponse;
-use Samson\Bundle\FilterBundle\Form\FilterPresetType;
+use Samson\Bundle\FilterBundle\Form\Type\FilterPresetType;
 use Symfony\Component\Form\FormError;
-use Samson\Bundle\FilterBundle\Form\SaveFilterPresetType;
+use Samson\Bundle\FilterBundle\Form\Type\SaveFilterPresetType;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Template;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
@@ -46,7 +46,7 @@ class FilterController extends Controller
 
                 // Extra check vanwege https://github.com/symfony/symfony/issues/1635
                 // http://stackoverflow.com/questions/4619071/doctrine2-findby-relationship-object-triggers-string-conversion-error
-                $existingPreset = $em->getRepository('SamsonCoreBundle:FilterPreset')->findOneBy(array(
+                $existingPreset = $em->getRepository('SamsonFilterBundle:FilterPreset')->findOneBy(array(
                     'name' => $filterPreset->getName(),
                     'filterType' => $filterPreset->getFilterType(),
                     'user' => $filterPreset->getUser()->getId()
