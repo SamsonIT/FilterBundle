@@ -11,15 +11,16 @@ use Samson\Bundle\FilterBundle\Entity\FilterPreset;
 use Samson\Bundle\FilterBundle\Entity\FilterValues;
 use Samson\Bundle\FilterBundle\Form\ChoiceList\FilterPresetChoiceList;
 use Samson\Bundle\SecurityBundle\Entity\AbstractUser;
+use Samson\Bundle\UnexpectedResponseBundle\Exception\UnexpectedResponseException;
 use Symfony\Component\DependencyInjection\Container;
 use Symfony\Component\Form\Exception\InvalidPropertyException;
 use Symfony\Component\Form\Form;
+use Symfony\Component\Form\Util\PropertyPath;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\Routing\Router;
 use Symfony\Component\Security\Core\SecurityContext;
-use Symfony\Component\Form\Util\PropertyPath;
 
 class Filter
 {
@@ -246,9 +247,7 @@ class Filter
 
         $this->session->set('filter_preset', $filterPreset);
 
-        $response = new RedirectResponse($this->router->generate('filter_savePreset', array('return_path' => $this->container->get('request')->getRequestUri())));
-        $response->send();
-        die();
+        throw new UnexpectedResponseException(new RedirectResponse($this->router->generate('filter_savePreset', array('return_path' => $this->container->get('request')->getRequestUri()))));
     }
 
     public function loadPreset(Form $filterDataForm, $presetName)
