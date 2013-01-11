@@ -93,6 +93,9 @@ class Filter
             return $qb;
         }
         $filterData = $data['data'];
+        if (null === $filterData) {
+            return $qb;
+        }
 
         $reflectionObject = new ReflectionObject($filterData);
 
