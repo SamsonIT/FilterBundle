@@ -184,6 +184,14 @@ class Filter
     {
         list($relation, $propertyPath) = explode('.', $propertyPath, 2);
 
+        foreach($qb->getDQLPart('join') as $joinPart) {
+            foreach($joinPart as $join) {
+                if ($join->getAlias() == $relation) {
+                    return array($join->getAlias(), $propertyPath);
+                }
+            }
+        }        
+
         $alias = 'a'.rand(0, 100000);
 
         if (!in_array($alias, $aliases)) {
