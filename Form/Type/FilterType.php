@@ -66,9 +66,17 @@ class FilterType extends AbstractType
 
                 $rememberedData = $filter->getFilterValuesForCurrentUser($dataForm);
                 if (null !== $rememberedData) {
-
                     if ($rememberedData->getRemember()) {
                         $filterData = $filter->deserialize($rememberedData->getData());
+                    }
+                    // it is possible we have remembered something that is currently not visible on the form
+                    // this item should not be used in the filter.
+                    if( $filterData ) {
+                        foreach( $filterData as $property => $value ) {
+                            if( !$dataForm->has( $property ) ){
+                                unset( $filterData->$property );
+                            }
+                        }
                     }
                 }
 
