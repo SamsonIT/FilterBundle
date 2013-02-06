@@ -349,7 +349,7 @@ class Filter
     {
         try {
             return $this->serializer->deserialize($val);
-        } catch (InvalidPropertyException $e) {
+        } catch (\Exception $e) {
             return null;
         }
     }
