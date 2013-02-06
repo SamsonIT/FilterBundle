@@ -184,19 +184,23 @@ class Filter
     {
         list($relation, $propertyPath) = explode('.', $propertyPath, 2);
 
+        $found = false;
         foreach($qb->getDQLPart('join') as $joinPart) {
             foreach($joinPart as $join) {
                 if ($join->getAlias() == $relation) {
-                    return array($join->getAlias(), $propertyPath);
+                    $found = true;
+                    $alias = $join->getAlias();
+                    $aliases[] = $alias;
                 }
             }
-        }        
+        }
+        if (!$found) {
+            $alias = 'a'.rand(0, 100000);
 
-        $alias = 'a'.rand(0, 100000);
-
-        if (!in_array($alias, $aliases)) {
-            $qb->leftJoin($parentAlias.'.'.$relation, $alias);
-            $aliases[] = $alias;
+            if (!in_array($alias, $aliases)) {
+                $qb->leftJoin($parentAlias.'.'.$relation, $alias);
+                $aliases[] = $alias;
+            }
         }
 
         if (strpos($propertyPath, ".") !== false) {
