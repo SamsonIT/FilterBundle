@@ -25,7 +25,7 @@ class PresetListener implements EventSubscriberInterface
     static public function getSubscribedEvents()
     {
         return array(
-            FormEvents::SET_DATA => array('preSetData', -100),
+            FormEvents::PRE_SET_DATA => array('preSetData', -100),
             FormEvents::POST_BIND => 'postBind',
         );
     }

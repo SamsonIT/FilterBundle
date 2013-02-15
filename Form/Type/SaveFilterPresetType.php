@@ -17,7 +17,7 @@ class SaveFilterPresetType extends AbstractType
             ->add('filterType', 'hidden')
             ->add('data', 'hidden');
 
-        $builder->get('data')->appendClientTransformer(new CallbackTransformer(function($value) {
+        $builder->get('data')->addViewTransformer(new CallbackTransformer(function($value) {
             return base64_encode(serialize($value));
         }, function($value) {
             return unserialize(base64_decode($value));

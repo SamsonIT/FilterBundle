@@ -15,7 +15,7 @@ use Samson\Bundle\UnexpectedResponseBundle\Exception\UnexpectedResponseException
 use Symfony\Component\DependencyInjection\Container;
 use Symfony\Component\Form\Exception\InvalidPropertyException;
 use Symfony\Component\Form\Form;
-use Symfony\Component\Form\Util\PropertyPath;
+use Symfony\Component\PropertyAccess\PropertyAccess;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Session\Session;
@@ -119,9 +119,9 @@ class Filter
             $properties = array_merge($properties, $refObject->getProperties());
         }
 
+        $accessor = PropertyAccess::getPropertyAccessor();
         foreach ($properties as $property) {
-            $valuePropertyPath = new PropertyPath($property->getName());
-            $value = $valuePropertyPath->getValue($filterData);
+            $value = $accessor->getValue($filterData, $property->getName());
 
             foreach ($this->reader->getPropertyAnnotations($property) as $annotation) {
                 if ($annotation instanceof FieldSearch) {
@@ -211,7 +211,7 @@ class Filter
 
     public function saveFilterValues(array $data, Form $filterDataForm)
     {
-        $em = $this->doctrine->getEntityManager();
+        $em = $this->doctrine->getManager();
         $user = $this->securityContext->getToken()->getUser();
 
         $entity = $this->getFilterValuesForCurrentUser($filterDataForm);
@@ -231,7 +231,7 @@ class Filter
 
     public function getFilterValues($user, Form $filterDataForm)
     {
-        $em = $this->doctrine->getEntityManager();
+        $em = $this->doctrine->getManager();
         $er = $em->getRepository('SamsonFilterBundle:FilterValues');
 
         $values = $er->findOneBy(array('user' => $user->getId(), 'filterType' => $filterDataForm->getConfig()->getType()->getName()));
@@ -314,7 +314,7 @@ class Filter
 
         $results = array();
 
-        $er = $this->doctrine->getEntityManager()->getRepository('SamsonFilterBundle:FilterPreset');
+        $er = $this->doctrine->getManager()->getRepository('SamsonFilterBundle:FilterPreset');
         $qb = $er->createQueryBuilder('p');
         $qb->where($qb->expr()->andx(
                 $qb->expr()->eq('p.filterType', '?1'), $qb->expr()->orx(
@@ -338,7 +338,7 @@ class Filter
 
     public function reattach($entity)
     {
-        $em = $this->doctrine->getEntityManager();
+        $em = $this->doctrine->getManager();
         if (!$em->getUnitOfWork()->isInIdentityMap($entity)) {
             $entity = $em->merge($entity);
         }

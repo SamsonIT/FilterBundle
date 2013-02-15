@@ -46,7 +46,7 @@ class FilterType extends AbstractType
         $presetListener = new PresetListener($request, $filter);
         $builder->addEventSubscriber($presetListener);
         $factory = $builder->getFormFactory();
-        $builder->addEventListener(FormEvents::SET_DATA, function(FormEvent $e) use ($factory, $options, $filter) {
+        $builder->addEventListener(FormEvents::PRE_SET_DATA, function(FormEvent $e) use ($factory, $options, $filter) {
                 $dataForm = $factory->createNamed('data', $options['filter_type'], null, array_merge( 
                         array(
                             'data_class' => get_class($options['filter_data'])
@@ -113,8 +113,6 @@ class FilterType extends AbstractType
                 $data = $e->getData();
                 $filter->saveFilterValues($data, $e->getForm()->get('data'));
             });
-
-        $builder->setAttribute('filterType', get_class($filterType));
     }
 
     public function getParent()
@@ -140,6 +138,6 @@ class FilterType extends AbstractType
 
     public function buildView(FormView $view, FormInterface $form, array $options)
     {
-        $view->vars['filterType'] = $form->getAttribute('filterType');
+        $view->vars['filterType'] = $options['filter_type'];
     }
 }

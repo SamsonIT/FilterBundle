@@ -42,7 +42,7 @@ class FilterController extends Controller
             $form->bindRequest($this->getRequest());
 
             if ($form->isValid()) {
-                $em = $this->getDoctrine()->getEntityManager();
+                $em = $this->getDoctrine()->getManager();
 
                 // Extra check vanwege https://github.com/symfony/symfony/issues/1635
                 // http://stackoverflow.com/questions/4619071/doctrine2-findby-relationship-object-triggers-string-conversion-error
@@ -89,7 +89,7 @@ class FilterController extends Controller
         if ($this->getRequest()->getMethod() == 'POST') {
             $form->bindRequest($this->getRequest());
             if ($form->isValid()) {
-                $this->get('doctrine')->getEntityManager()->flush();
+                $this->get('doctrine')->getManager()->flush();
                 $this->redirect($this->get('router')->generate('filter_managePresets', array('filterType' => $filterType)));
             }
         }
