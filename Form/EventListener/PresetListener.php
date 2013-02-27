@@ -6,6 +6,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\Form\Event\DataEvent;
 use Samson\Bundle\FilterBundle\Filter\Filter;
+use Samson\Bundle\UnexpectedResponseBundle\Exception\UnexpectedResponseException;
 use Symfony\Component\Form\Event\FilterDataEvent;
 use Symfony\Component\Form\FormEvents;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
@@ -53,7 +54,7 @@ class PresetListener implements EventSubscriberInterface
                 $this->filter->saveFilterValues($setData, $filterDataForm);
 
                 $response = new RedirectResponse($this->request->getRequestUri());
-                throw new \Samson\Bundle\CoreBundle\Exception\UnexpectedResponseException($response);
+                throw new UnexpectedResponseException($response);
             }
         }
     }
