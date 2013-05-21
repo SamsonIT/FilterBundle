@@ -35,7 +35,9 @@ class FilterType extends AbstractType
             $filterType = $builder->getFormFactory()->getType($filterType);
         }
 
-        $def = $filterType->getDefaultOptions(array());
+        $resolver = new \Symfony\Component\OptionsResolver\OptionsResolver();
+        $filterType->setDefaultOptions($resolver);
+        $def = $resolver->resolve();
         if (isset($def['data']) && null !== $def['data']) {
             $filterData = $def['data'];
         } else {
@@ -49,7 +51,8 @@ class FilterType extends AbstractType
         $builder->addEventListener(FormEvents::PRE_SET_DATA, function(FormEvent $e) use ($factory, $options, $filter) {
                 $dataForm = $factory->createNamed('data', $options['filter_type'], null, array_merge( 
                         array(
-                            'data_class' => get_class($options['filter_data'])
+                            'data_class' => get_class($options['filter_data']),
+                            'auto_initialize' => false
                         ),
                         $options['options']
                     
@@ -93,10 +96,11 @@ class FilterType extends AbstractType
                 $choiceList = $filter->getPresetChoiceList($e->getForm()->get('data'));
                 $e->getForm()->add($factory->createNamed('preset', 'choice', null, array(
                         'choice_list' => $choiceList,
-                        'required' => true
+                        'required' => true,
+                        'auto_initialize' => false
                     )));
-                $e->getForm()->add($factory->createNamed('savePreset', 'hidden'));
-                $e->getForm()->add($factory->createNamed('loadPreset', 'hidden'));
+                $e->getForm()->add($factory->createNamed('savePreset', 'hidden', null, array('auto_initialize' => false)));
+                $e->getForm()->add($factory->createNamed('loadPreset', 'hidden', null, array('auto_initialize' => false)));
 
                 $e->setData(array('data' => $filterData));
             });

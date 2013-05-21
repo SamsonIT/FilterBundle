@@ -4,7 +4,7 @@ namespace Samson\Bundle\FilterBundle\Form\EventListener;
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RedirectResponse;
-use Symfony\Component\Form\Event\DataEvent;
+use Symfony\Component\Form\FormEvent;
 use Samson\Bundle\FilterBundle\Filter\Filter;
 use Samson\Bundle\UnexpectedResponseBundle\Exception\UnexpectedResponseException;
 use Symfony\Component\Form\Event\FilterDataEvent;
@@ -31,7 +31,7 @@ class PresetListener implements EventSubscriberInterface
         );
     }
 
-    public function preSetData(FilterDataEvent $event)
+    public function preSetData(FormEvent $event)
     {
         $filterDataForm = $event->getForm()->get('data');
 
@@ -68,12 +68,12 @@ class PresetListener implements EventSubscriberInterface
         return $value;
     }
 
-    public function preBind(DataEvent $event)
+    public function preBind(FormEvent $event)
     {
         $data = $event->getData();
     }
 
-    public function postBind(DataEvent $event)
+    public function postBind(FormEvent $event)
     {
         $filterDataForm = $event->getForm()->get('data');
         $data = $event->getData();
