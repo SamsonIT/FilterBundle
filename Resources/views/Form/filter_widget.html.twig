@@ -1,11 +1,5 @@
-{% form_theme form _self %}
+{% form_theme form 'SamsonFilterBundle:Form:_form.html.twig' %}
 
-{% block form_label %}
-        {% if label is empty %}
-            {% set label = name|humanize %}
-        {% endif %}
-        <span {% for attrname, attrvalue in label_attr %} {{ attrname }}="{{ attrvalue }}"{% endfor %}>{{ label|trans({}, translation_domain) }}</span>
-{% endblock %}
 {% block _filter_data_widget %}
     <div class="select-container">
     {% for column in columns %}
