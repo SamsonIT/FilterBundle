@@ -61,7 +61,7 @@ class Filter
     public function bindAndFilter(Request $request, Form $filterForm, $qb)
     {
         if ($request->request->has($filterForm->getName())) {
-            $filterForm->bind($request->request->get($filterForm->getName()));
+            $filterForm->submit($request->request->get($filterForm->getName()));
         }
         if ($qb instanceof QueryBuilder) {
             $qb = array($qb);
@@ -216,7 +216,7 @@ class Filter
 
         $entity = $this->getFilterValuesForCurrentUser($filterDataForm);
 
-        $remember = $this->config['use_remember'] ? $data['remember'] : true;
+        $remember = true;//$this->config['use_remember'] ? $data['remember'] : true;
         $entity->setRemember($remember);
         $entity->setData($this->serialize($remember ? $data['data'] : null));
 

@@ -1,20 +1,40 @@
 {% form_theme form _self %}
 
+{% block form_label %}
+        {% if label is empty %}
+            {% set label = name|humanize %}
+        {% endif %}
+        <span {% for attrname, attrvalue in label_attr %} {{ attrname }}="{{ attrvalue }}"{% endfor %}>{{ label|trans({}, translation_domain) }}</span>
+{% endblock %}
 {% block _filter_data_widget %}
-    <table {{ block('widget_container_attributes') }}>
-        {{ block('field_rows') }}
-        {{ form_rest(form) }}
-    </table>
+    <div class="select-container">
+    {% for column in columns %}
+        <div class="filter-column">
+            <div class="filter-labels">
+                {% for child in column %}
+                    {{ form_label(child) }}
+                {% endfor %}
+            </div>
+            <div class="filter-selects">
+                {% for child in column %}
+                    {{ form_widget(child) }}
+                {% endfor %}
+            </div>
+        </div>
+    {% endfor %}
+    </div>
 {% endblock %}
 
 {% block filter_widget %}
-<div class="filter form-contents">
-    <h2>{{ 'filter.filter' | trans | capitalize }} {% block filter_name "" %}</h2>
+<div class="toggle-filter-form ui-widget-content form-contents">
+    {{ form_widget(form.data) }}
 
-    <div class="filter_fields">
-        {{ form_widget(form.data) }}
+    <div class="buttons">
+        {{ form_widget(form.filter) }}
+        {{ form_widget(form.reset) }}
     </div>
 
+    {#
     <div class="filter_footer">
         <table style="width: 100%;">
             <tr>
@@ -33,6 +53,7 @@
         </table>
         {{ form_rest(form) }}
     </div>
+    #}
 </div>
 {% endblock %}
 
