@@ -10,6 +10,7 @@ use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\FormEvent;
 use Symfony\Component\Form\FormEvents;
 use Symfony\Component\Form\FormInterface;
+use Symfony\Component\Form\FormRegistry;
 use Symfony\Component\Form\FormView;
 use Symfony\Component\OptionsResolver\OptionsResolverInterface;
 
@@ -17,11 +18,12 @@ class FilterType extends AbstractType
 {
     private $filter;
 
-    public function __construct(Filter $filter, Container $container, array $config)
+    public function __construct(Filter $filter, Container $container, array $config, FormRegistry $registry )
     {
         $this->filter = $filter;
         $this->container = $container;
         $this->config = $config;
+        $this->registry = $registry;
     }
 
     public function buildForm(FormBuilderInterface $builder, array $options)
@@ -30,7 +32,7 @@ class FilterType extends AbstractType
         $filterType = $options['filter_type'];
 
         if (is_string($filterType)) {
-            $filterType = $builder->getFormFactory()->getType($filterType);
+            $filterType = $this->registry->getType($filterType)->getInnerType();
         }
 
         $resolver = new \Symfony\Component\OptionsResolver\OptionsResolver();
