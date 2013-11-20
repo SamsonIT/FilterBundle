@@ -37,6 +37,11 @@ class FilterValues implements FilterDataInterface
      */
     private $filterType;
 
+    public function getId()
+    {
+        return $this->id;
+    }
+
     /**
      * @return string
      */
