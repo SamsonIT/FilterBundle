@@ -6,9 +6,9 @@
         }
     },
     "require": {
-        "doctrine/orm": "2.3.*",
-        "symfony/framework-bundle": ">=2.1.0",
-        "samson/unexpected-response-bundle": "*"
+        "doctrine/orm": "~2.3.0",
+        "symfony/framework-bundle": "~2.1",
+        "samson/unexpected-response-bundle": "~0.1"
     },
     "target-dir": "Samson/Bundle/FilterBundle"
 }
