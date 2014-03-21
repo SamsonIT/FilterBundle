@@ -38,29 +38,13 @@ class FilterController extends Controller
         $form = $this->createForm(new SaveFilterPresetType(), $filterPreset);
         $returnPath = $this->getRequest()->query->get('return_path');
 
-        if ($this->getRequest()->getMethod() == 'POST') {
-            $form->bindRequest($this->getRequest());
+        if ($form->handleRequest($this->getRequest())->isValid()) {
+            $em = $this->getDoctrine()->getManager();
 
-            if ($form->isValid()) {
-                $em = $this->getDoctrine()->getManager();
+            $em->persist($filterPreset);
+            $em->flush();
 
-                // Extra check vanwege https://github.com/symfony/symfony/issues/1635
-                // http://stackoverflow.com/questions/4619071/doctrine2-findby-relationship-object-triggers-string-conversion-error
-                $existingPreset = $em->getRepository('SamsonFilterBundle:FilterPreset')->findOneBy(array(
-                    'name' => $filterPreset->getName(),
-                    'filterType' => $filterPreset->getFilterType(),
-                    'user' => $filterPreset->getUser()->getId()
-                    ));
-                if (null !== $existingPreset) {
-                    $error = new FormError('There already is a preset defined for this user and filter with the name "{{ name }}"', array('{{ name }}' => $filterPreset->getName()));
-                    $form->addError($error);
-                } else {
-                    $em->persist($filterPreset);
-                    $em->flush();
-
-                    return new CloseDialogResponse($returnPath);
-                }
-            }
+            return new CloseDialogResponse($returnPath);
         }
 
         return array('form' => $form->createView(), 'return_path' => $returnPath);
@@ -81,17 +65,20 @@ class FilterController extends Controller
 
         $presets = $filter->getConfiguredPresetsForUser($filterType->getName(), $user);
 
-        $form = $this->createForm('editable_grid', $presets, array(
-            'type' => new FilterPresetType(),
-            'allow_delete' => true
-            ));
+        $form = $this->createForm(
+            'editable_grid',
+            $presets,
+            array(
+                'type' => new FilterPresetType(),
+                'allow_delete' => true
+            )
+        );
 
-        if ($this->getRequest()->getMethod() == 'POST') {
-            $form->bindRequest($this->getRequest());
-            if ($form->isValid()) {
-                $this->get('doctrine')->getManager()->flush();
-                $this->redirect($this->get('router')->generate('filter_managePresets', array('filterType' => $filterType)));
-            }
+        if ($form->handleRequest($this->getRequest())->isValid()) {
+            $this->get('doctrine')->getManager()->flush();
+            $this->redirect(
+                $this->get('router')->generate('filter_managePresets', array('filterType' => $filterType))
+            );
         }
 
         return array('filterType' => get_class($filterType), 'form' => $form->createView());

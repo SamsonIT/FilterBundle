@@ -19,6 +19,12 @@ class StringFilter extends FieldFilter
             throw new \InvalidArgumentException('Type should be one of '.implode(',', $validTypes));
         }
         $parameter = $value;
+        $parameterName = $this->generateParameterName();
+
+        if ($stringSearch->type == 'equals') {
+            return array(new Expr\Comparison($field, '=', ':'.$parameterName), array($parameterName => $parameter));
+        }
+
         switch ($stringSearch->type) {
             case 'begins_with':
                 $parameter = "$value%";
@@ -31,7 +37,6 @@ class StringFilter extends FieldFilter
                 break;
         }
 
-        $parameterName = $this->generateParameterName();
 
         return array(new Expr\Comparison($field, 'LIKE', ':'.$parameterName), array($parameterName => $parameter));
     }

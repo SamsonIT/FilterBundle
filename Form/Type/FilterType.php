@@ -10,6 +10,7 @@ use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\FormEvent;
 use Symfony\Component\Form\FormEvents;
 use Symfony\Component\Form\FormInterface;
+use Symfony\Component\Form\FormRegistry;
 use Symfony\Component\Form\FormView;
 use Symfony\Component\OptionsResolver\OptionsResolverInterface;
 
@@ -17,11 +18,12 @@ class FilterType extends AbstractType
 {
     private $filter;
 
-    public function __construct(Filter $filter, Container $container, array $config)
+    public function __construct(Filter $filter, Container $container, array $config, FormRegistry $registry )
     {
         $this->filter = $filter;
         $this->container = $container;
         $this->config = $config;
+        $this->registry = $registry;
     }
 
     public function buildForm(FormBuilderInterface $builder, array $options)
@@ -29,20 +31,12 @@ class FilterType extends AbstractType
         $filter = $this->filter;
         $filterType = $options['filter_type'];
 
-        $filterData = $options['filter_data'];
-
         if (is_string($filterType)) {
-            $filterType = $builder->getFormFactory()->getType($filterType);
+            $filterType = $this->registry->getType($filterType)->getInnerType();
         }
 
         $resolver = new \Symfony\Component\OptionsResolver\OptionsResolver();
         $filterType->setDefaultOptions($resolver);
-        $def = $resolver->resolve();
-        if (isset($def['data']) && null !== $def['data']) {
-            $filterData = $def['data'];
-        } else {
-            $filterData = $options['filter_data'];
-        }
 
         $request = $this->container->get('request');
         $presetListener = new PresetListener($request, $filter);
@@ -93,27 +87,30 @@ class FilterType extends AbstractType
 
                 $e->getForm()->add($dataForm);
 
-                $choiceList = $filter->getPresetChoiceList($e->getForm()->get('data'));
-                $e->getForm()->add($factory->createNamed('preset', 'choice', null, array(
-                        'choice_list' => $choiceList,
-                        'required' => true,
-                        'auto_initialize' => false
-                    )));
-                $e->getForm()->add($factory->createNamed('savePreset', 'hidden', null, array('auto_initialize' => false)));
-                $e->getForm()->add($factory->createNamed('loadPreset', 'hidden', null, array('auto_initialize' => false)));
+//                $choiceList = $filter->getPresetChoiceList($e->getForm()->get('data'));
+//                $e->getForm()->add($factory->createNamed('preset', 'choice', null, array(
+//                        'choice_list' => $choiceList,
+//                        'required' => true,
+//                        'auto_initialize' => false
+//                    )));
+//                $e->getForm()->add($factory->createNamed('savePreset', 'hidden', null, array('auto_initialize' => false)));
+//                $e->getForm()->add($factory->createNamed('loadPreset', 'hidden', null, array('auto_initialize' => false)));
 
                 $e->setData(array('data' => $filterData));
             });
+//
+//
+//        if ($options['use_remember']) {
+//            $builder->add('remember', 'checkbox', array(
+//                'data' => true,
+//                'required' => false
+//            ));
+//        }
 
+        $builder->add('filter', 'submit');
+        $builder->add('reset', 'submit');
 
-        if ($options['use_remember']) {
-            $builder->add('remember', 'checkbox', array(
-                'data' => true,
-                'required' => false
-            ));
-        }
-
-        $builder->addEventListener(FormEvents::POST_BIND, function(FormEvent $e) use ($filter, $filterType) {
+        $builder->addEventListener(FormEvents::POST_SUBMIT, function(FormEvent $e) use ($filter, $filterType) {
                 $data = $e->getData();
                 $filter->saveFilterValues($data, $e->getForm()->get('data'));
             });
@@ -143,5 +140,29 @@ class FilterType extends AbstractType
     public function buildView(FormView $view, FormInterface $form, array $options)
     {
         $view->vars['filterType'] = $options['filter_type'];
+    }
+
+    public function finishView(FormView $view, FormInterface $form, array $options)
+    {
+
+        $view->children['data']->vars['columns'] = array(array());
+        $column = 1;
+
+        $todo = $view->children['data']->children;
+        foreach($view->children['data']->children as $name => $child) {
+            if (in_array('choice', $child->vars['block_prefixes']) && $child->vars['multiple']) {
+                $view->children['data']->vars['columns'][] = array($child);
+
+                unset($todo[$name]);
+            }
+        }
+
+        $counter = 0;
+        foreach($todo as $child) {
+            $view->children['data']->vars['columns'][$counter][] = $child;
+            if (count($view->children['data']->vars['columns'][$counter]) >= count($todo) / 3) {
+                array_splice($view->children['data']->vars['columns'], ++$counter, 0, array(array()));
+            }
+        }
     }
 }

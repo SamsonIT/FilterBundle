@@ -13,6 +13,7 @@
                 <argument key="use_preset">%samson_filter.use_preset%</argument>
                 <argument key="use_remember">%samson_filter.use_remember%</argument>
             </argument>
+            <argument type="service" id="form.registry" />
             <tag name="form.type" alias="filter" />
         </service>
         

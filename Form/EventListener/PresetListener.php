@@ -27,7 +27,7 @@ class PresetListener implements EventSubscriberInterface
     {
         return array(
             FormEvents::PRE_SET_DATA => array('preSetData', -100),
-            FormEvents::POST_BIND => 'postBind',
+//            FormEvents::POST_BIND => 'postBind',
         );
     }
 
@@ -38,6 +38,11 @@ class PresetListener implements EventSubscriberInterface
         if ($this->request->getMethod() == 'POST' && $this->request->request->has($event->getForm()->getName())) {
             $data = $this->request->request->get($event->getForm()->getName());
             $filterValues = $this->filter->getFilterValuesForCurrentUser($filterDataForm);
+
+            if (isset($data['reset'])) {
+                $data['loadPreset'] = 1;
+                $data['preset'] = '_reset_';
+            }
 
             if (isset($data['loadPreset'])) {
                 $this->request->request->remove($event->getForm()->getName());
