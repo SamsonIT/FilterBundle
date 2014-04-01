@@ -1,8 +1,8 @@
 {
     "name": "samson/filter-bundle",
     "autoload": {
-        "psr-0": {
-            "Samson\\Bundle\\FilterBundle": ""
+        "psr-4": {
+            "Samson\\Bundle\\FilterBundle\\": ""
         }
     },
     "require": {
@@ -10,5 +10,9 @@
         "symfony/framework-bundle": ">=2.1.0",
         "samson/unexpected-response-bundle": "*"
     },
-    "target-dir": "Samson/Bundle/FilterBundle"
+    "extra": {
+        "branch-alias": {
+            "dev-master": "3.0.x-dev"
+        }
+    }
 }
