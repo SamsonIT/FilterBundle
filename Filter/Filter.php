@@ -39,7 +39,7 @@ class Filter
     private $serializer;
 
     public function __construct(
-    FileCacheReader $reader, Registry $doctrine, SecurityContext $sc, Session $session, Router $router, Container $container, DataSerializer $serializer, array $config
+        FileCacheReader $reader, Registry $doctrine, SecurityContext $sc, Session $session, Router $router, Container $container, DataSerializer $serializer, array $config
     )
     {
         $this->reader = $reader;
@@ -53,7 +53,7 @@ class Filter
     }
 
     /**
-     * 
+     *
      * @param Request $request
      * @param Form $filterForm
      * @param mixed $qb QueryBuilder or array
@@ -72,14 +72,14 @@ class Filter
         if (array_key_exists('remember', $data) && $data['remember']) {
             if ($request->getMethod() != 'POST') {
                 if (!$request->query->has('page')) {
-                    if ($this->session->has('session_page['.$filterForm->get('data')->getName().']')) {
-                        $request->query->set('page', $this->session->get('session_page['.$filterForm->get('data')->getName().']'));
+                    if ($this->session->has('session_page[' . $filterForm->get('data')->getName() . ']')) {
+                        $request->query->set('page', $this->session->get('session_page[' . $filterForm->get('data')->getName() . ']'));
                     }
                 } else {
-                    $this->session->set('session_page['.$filterForm->get('data')->getName().']', $request->query->get('page'));
+                    $this->session->set('session_page[' . $filterForm->get('data')->getName() . ']', $request->query->get('page'));
                 }
             } else {
-                $this->session->set('session_page['.$filterForm->get('data')->getName().']', 1);
+                $this->session->set('session_page[' . $filterForm->get('data')->getName() . ']', 1);
             }
         }
 
@@ -223,8 +223,8 @@ class Filter
         list($relation, $propertyPath) = explode('.', $propertyPath, 2);
 
         $found = false;
-        foreach($qb->getDQLPart('join') as $joinPart) {
-            foreach($joinPart as $join) {
+        foreach ($qb->getDQLPart('join') as $joinPart) {
+            foreach ($joinPart as $join) {
                 if ($join->getAlias() == $relation) {
                     $found = true;
                     $alias = $join->getAlias();
@@ -233,10 +233,10 @@ class Filter
             }
         }
         if (!$found) {
-            $alias = 'a'.rand(0, 100000);
+            $alias = 'a' . rand(0, 100000);
 
             if (!in_array($alias, $aliases)) {
-                $qb->leftJoin($parentAlias.'.'.$relation, $alias);
+                $qb->leftJoin($parentAlias . '.' . $relation, $alias);
                 $aliases[] = $alias;
             }
         }
@@ -254,7 +254,7 @@ class Filter
 
         $entity = $this->getFilterValuesForCurrentUser($filterDataForm);
 
-        $remember = true;//$this->config['use_remember'] ? $data['remember'] : true;
+        $remember = true; //$this->config['use_remember'] ? $data['remember'] : true;
         $entity->setRemember($remember);
         $entity->setData($this->serialize($remember ? $data['data'] : null));
 
@@ -355,10 +355,10 @@ class Filter
         $er = $this->doctrine->getManager()->getRepository('SamsonFilterBundle:FilterPreset');
         $qb = $er->createQueryBuilder('p');
         $qb->where($qb->expr()->andx(
-                $qb->expr()->eq('p.filterType', '?1'), $qb->expr()->orx(
-                    $qb->expr()->eq('p.public', '?2'), $qb->expr()->eq('p.user', '?3')
-                )
-            ));
+            $qb->expr()->eq('p.filterType', '?1'), $qb->expr()->orx(
+                $qb->expr()->eq('p.public', '?2'), $qb->expr()->eq('p.user', '?3')
+            )
+        ));
         $qb->setParameters(array(1 => $filterName, 2 => true, 3 => $user->getId()));
 
         foreach ($qb->getQuery()->getResult() as $result) {
