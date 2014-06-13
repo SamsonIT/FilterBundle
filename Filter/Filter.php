@@ -88,6 +88,12 @@ class Filter
         }
     }
 
+    /**
+     * @param $data
+     * @param QueryBuilder $qb
+     * @return QueryBuilder
+     * @throws \UnexpectedValueException
+     */
     public function filter($data, QueryBuilder $qb)
     {
         if (null === $data) {
@@ -109,8 +115,6 @@ class Filter
 
         $aliases = $qb->getRootAliases();
 
-        $leftJoins = array();
-
         $parameterNameGenerator = new ParameterNameGenerator();
 
         $properties = array();
@@ -119,65 +123,99 @@ class Filter
             $properties = array_merge($properties, $refObject->getProperties());
         }
 
-        $accessor = PropertyAccess::getPropertyAccessor();
+        $accessor = PropertyAccess::createPropertyAccessor();
         foreach ($properties as $property) {
             $value = $accessor->getValue($filterData, $property->getName());
 
             foreach ($this->reader->getPropertyAnnotations($property) as $annotation) {
-                if ($annotation instanceof FieldSearch) {
+                if (!$annotation instanceof FieldSearch) {
+                    continue;
+                }
 
-                    $fieldFilterClass = $annotation->filteredBy();
-                    $fieldFilter = new $fieldFilterClass($parameterNameGenerator, $qb);
+                $fieldFilterClass = $annotation->filteredBy();
+                $fieldFilter = new $fieldFilterClass($parameterNameGenerator, $qb);
 
-                    $propertyPaths = $annotation->propertyPaths;
-                    if (empty($propertyPaths)) {
-                        $propertyPaths = array($property->getName());
+                $propertyPaths = $annotation->propertyPaths;
+                if (empty($propertyPaths)) {
+                    $propertyPaths = array($property->getName());
+                }
+                $multiple = null;
+                if (property_exists($annotation, 'multiterm') && true === $annotation->multiterm) {
+                    if (!is_string($value)) {
+                        throw new \UnexpectedValueException("When using multiple terms, the searchvalue should be a string");
                     }
-
-                    $exprs = array();
-                    $havingExprs = array();
-                    foreach ($propertyPaths as $propertyPath) {
-                        $having = false;
-                        if (strpos($propertyPath, '~') === 0) {
-                            $alias = null;
-                            $propertyPath = substr($propertyPath, 1);
-                            $having = true;
-                        } elseif (strpos($propertyPath, ".") !== false) {
-                            list($alias, $propertyPath) = $this->getLeftJoinAlias($aliases[0], $propertyPath, $aliases, $qb);
-                        } else {
-                            $alias = $aliases[0];
-                        }
-
-                        if (null !== $alias) {
-                            $propertyPath = $alias.'.'.$propertyPath;
-                        }
-
-                        list ($expr, $parameters) = $fieldFilter->filter($propertyPath, $value, $annotation);
-                        if (null === $expr)
-                            continue;
-
-                        foreach ($parameters as $key => $value) {
-                            $qb->setParameter($key, $value);
-                        }
-
-                        if ($having) {
-                            $havingExprs[] = $expr;
-                        } else {
-                            $exprs[] = $expr;
-                        }
+                    foreach (preg_split('/\s+/', trim($value)) as $valuePart) {
+                        list($exprs, $havingExprs) = $this->buildExprs($qb, $fieldFilter, $annotation, $propertyPaths, $aliases, $valuePart);
+                        $this->applyExprs($qb, $exprs, $havingExprs);
                     }
-
-                    if (count($exprs)) {
-                        $qb->andWhere("(".call_user_func_array(array($qb->expr(), 'orX'), $exprs).")");
-                    }
-                    if (count($havingExprs)) {
-                        $qb->andHaving("(".call_user_func_array(array($qb->expr(), 'orX'), $havingExprs).")");
-                    }
+                } else {
+                    list($exprs, $havingExprs) = $this->buildExprs($qb, $fieldFilter, $annotation, $propertyPaths, $aliases, $value);
+                    $this->applyExprs($qb, $exprs, $havingExprs);
                 }
             }
         }
-
         return $qb;
+    }
+
+    /**
+     * @param QueryBuilder $qb
+     * @param FieldFilter $fieldFilter
+     * @param FieldSearch $annotation
+     * @param $propertyPaths
+     * @param $aliases
+     * @param $value
+     * @return array
+     */
+    private function buildExprs(QueryBuilder $qb, FieldFilter $fieldFilter, FieldSearch $annotation, $propertyPaths, $aliases, $value)
+    {
+        $exprs = array();
+        $havingExprs = array();
+        foreach ($propertyPaths as $propertyPath) {
+            $having = false;
+            if (strpos($propertyPath, '~') === 0) {
+                $alias = null;
+                $propertyPath = substr($propertyPath, 1);
+                $having = true;
+            } elseif (strpos($propertyPath, ".") !== false) {
+                list($alias, $propertyPath) = $this->getLeftJoinAlias($aliases[0], $propertyPath, $aliases, $qb);
+            } else {
+                $alias = $aliases[0];
+            }
+
+            if (null !== $alias) {
+                $propertyPath = $alias . '.' . $propertyPath;
+            }
+
+            list ($expr, $parameters) = $fieldFilter->filter($propertyPath, $value, $annotation);
+            if (null === $expr)
+                continue;
+
+            foreach ($parameters as $key => $value) {
+                $qb->setParameter($key, $value);
+            }
+
+            if ($having) {
+                $havingExprs[] = $expr;
+            } else {
+                $exprs[] = $expr;
+            }
+        }
+        return array($exprs, $havingExprs);
+    }
+
+    /**
+     * @param QueryBuilder $qb
+     * @param $exprs
+     * @param $havingExprs
+     */
+    private function applyExprs(QueryBuilder $qb, $exprs, $havingExprs)
+    {
+        if (count($exprs)) {
+            $qb->andWhere("(" . call_user_func_array(array($qb->expr(), 'orX'), $exprs) . ")");
+        }
+        if (count($havingExprs)) {
+            $qb->andHaving("(" . call_user_func_array(array($qb->expr(), 'orX'), $havingExprs) . ")");
+        }
     }
 
     private function getLeftJoinAlias($parentAlias, $propertyPath, &$aliases, QueryBuilder $qb)

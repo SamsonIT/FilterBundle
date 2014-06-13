@@ -11,6 +11,8 @@ class String extends FieldSearch
 {
     public $type = 'contains';
 
+    public $multiterm = false;
+
     public function getDefaultValue()
     {
         return 'type';
