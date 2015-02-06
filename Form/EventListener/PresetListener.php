@@ -11,6 +11,12 @@ use Symfony\Component\Form\Event\FilterDataEvent;
 use Symfony\Component\Form\FormEvents;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
+/**
+ * Automatically handle persisting and flushing saved filtervalues when a form is submitted.
+ *
+ * Class PresetListener
+ * @package Samson\Bundle\FilterBundle\Form\EventListener
+ */
 class PresetListener implements EventSubscriberInterface
 {
     private $filter;
@@ -31,6 +37,19 @@ class PresetListener implements EventSubscriberInterface
         );
     }
 
+    /**
+     * Load pre-set choice lists for forms.
+     * Intercepts the current request if it's a POST request for the form
+     * Saves the search parameters as new pre-set filters.
+     *
+     * !! Warning !!
+     * If your form contains a 'reset' key, then this function will ABORT your current request,
+     * resets the form parameters (basically clear it) and HTTP 302 redirect back to the page that's initiated the
+     * POST.
+     *
+     * @throws UnexpectedResponseException RedirectResponse to the current request uri if there is a 'reset' parameter
+     * @param FormEvent $event
+     */
     public function preSetData(FormEvent $event)
     {
         $filterDataForm = $event->getForm()->get('data');
