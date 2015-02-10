@@ -22,6 +22,13 @@ use Symfony\Component\HttpFoundation\Session\Session;
 use Symfony\Component\Routing\Router;
 use Symfony\Component\Security\Core\SecurityContext;
 
+/**
+ * Interface to the generic Filter functions for the QueryBuilder.
+ * You'll probably want to use either BindAndFilter or filterQueryBuilderWithForm
+ *
+ * Class Filter
+ * @package Samson\Bundle\FilterBundle\Filter
+ */
 class Filter
 {
     private $reader;
@@ -53,7 +60,12 @@ class Filter
     }
 
     /**
+     * Rewrite the query found in $qb based upon the information from the $filterForm Form.
+     * Automatically persist the filter settings to the database.
      *
+     * !! Warning !! Can/Will throw an UnexpectedResponseException to do a redirect and save the settings!
+     *
+     * @see Samson/unexpected-response-bundle/Exception/UnexpectedResponseException
      * @param Request $request
      * @param Form $filterForm
      * @param mixed $qb QueryBuilder or array
@@ -88,7 +100,37 @@ class Filter
         }
     }
 
+
     /**
+     * Submit the form with data from the request
+     * Then execute the filter on the QueryBulider.
+     * Don't auto-redirect or do fancy stuff that bindAndFilter does.
+     *
+     * @param Request $request
+     * @param Form $filterForm
+     * @param mixed $qb QueryBuilder or array
+     */
+    public function filterQueryBuilderWithForm(Request $request, Form $filterForm, $qb)
+    {
+        if ($request->request->has($filterForm->getName())) {
+            $filterForm->submit($request->request->get($filterForm->getName()));
+        }
+        if ($qb instanceof QueryBuilder) {
+            $qb = array($qb);
+        }
+
+        $data = $filterForm->getData();
+
+        foreach ($qb as $currentQb) {
+            $this->filter($data, $currentQb);
+        }
+    }
+
+
+    /**
+     * Rewrite a doctrine query based on data passed from a Form's getData()
+     * Performs reflection to see what properties exist in classes, auto-adds them to the query
+     *
      * @param $data
      * @param QueryBuilder $qb
      * @return QueryBuilder
@@ -247,6 +289,14 @@ class Filter
         return array($alias, $propertyPath);
     }
 
+    /**
+     * Save filter values passed in to form for the current user into the database.
+     *
+     * @param array $data form request data.
+     * @param Form $filterDataForm Form entity
+     * @return FilterValues entity with saved values
+     * @throws \Exception
+     */
     public function saveFilterValues(array $data, Form $filterDataForm)
     {
         $em = $this->doctrine->getManager();
@@ -267,6 +317,13 @@ class Filter
         return $entity;
     }
 
+    /**
+     * Fetch pre-set(or saved) filter values for the current user based on the form type.
+     *
+     * @param $user
+     * @param Form $filterDataForm
+     * @return FilterValues
+     */
     public function getFilterValues($user, Form $filterDataForm)
     {
         $em = $this->doctrine->getManager();
