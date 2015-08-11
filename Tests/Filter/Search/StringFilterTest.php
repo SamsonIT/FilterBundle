@@ -28,7 +28,7 @@ class StringFilterTest extends FieldFilterTest
     {
         return array(
             array('name', 'Sam', new String(array('value' => 'begins_with')), 'name LIKE :f0', array('f0' => 'Sam%')),
-            array('name', 'Samson IT', new String(array('value' => 'equals')), 'name LIKE :f0', array('f0' => 'Samson IT')),
+            array('name', 'Samson IT', new String(array('value' => 'equals')), 'name = :f0', array('f0' => 'Samson IT')),
             array('name', 'n IT', new String(array('value' => 'ends_with')), 'name LIKE :f0', array('f0' => '%n IT')),
             array('name', 'mso', new String(array('value' => 'contains')), 'name LIKE :f0', array('f0' => '%mso%')),
         );
