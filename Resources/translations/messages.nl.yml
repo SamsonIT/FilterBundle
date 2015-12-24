@@ -1,5 +1,6 @@
 filter:
-  filter: filter
+  filter: Filter
+  reset: Reset
   remember: bewaren
   manage_presets: presets beheren
   save_preset: preset opslaan

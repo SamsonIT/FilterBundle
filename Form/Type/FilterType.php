@@ -18,7 +18,7 @@ class FilterType extends AbstractType
 {
     private $filter;
 
-    public function __construct(Filter $filter, Container $container, array $config, FormRegistry $registry )
+    public function __construct(Filter $filter, Container $container, array $config, FormRegistry $registry)
     {
         $this->filter = $filter;
         $this->container = $container;
@@ -42,50 +42,50 @@ class FilterType extends AbstractType
         $presetListener = new PresetListener($request, $filter);
         $builder->addEventSubscriber($presetListener);
         $factory = $builder->getFormFactory();
-        $builder->addEventListener(FormEvents::PRE_SET_DATA, function(FormEvent $e) use ($factory, $options, $filter) {
-                $dataForm = $factory->createNamed('data', $options['filter_type'], null, array_merge( 
-                        array(
-                            'data_class' => get_class($options['filter_data']),
-                            'auto_initialize' => false
-                        ),
-                        $options['options']
-                    
-                    ));
+        $builder->addEventListener(FormEvents::PRE_SET_DATA, function (FormEvent $e) use ($factory, $options, $filter) {
+            $dataForm = $factory->createNamed('data', $options['filter_type'], null, array_merge(
+                array(
+                    'data_class' => get_class($options['filter_data']),
+                    'auto_initialize' => false
+                ),
+                $options['options']
+
+            ));
 
 
-                $childOptions = $dataForm->getConfig()->getOptions();
+            $childOptions = $dataForm->getConfig()->getOptions();
 
-                if (isset($childOptions['data']) && null !== $childOptions['data']) {
-                    $filterData = $childOptions['data'];
-                } else {
-                    $filterData = $options['filter_data'];
+            if (isset($childOptions['data']) && null !== $childOptions['data']) {
+                $filterData = $childOptions['data'];
+            } else {
+                $filterData = $options['filter_data'];
+            }
+
+            $rememberedData = $filter->getFilterValuesForCurrentUser($dataForm);
+            if (null !== $rememberedData) {
+                if ($rememberedData->getRemember()) {
+                    $filterData = $filter->deserialize($rememberedData->getData());
                 }
-
-                $rememberedData = $filter->getFilterValuesForCurrentUser($dataForm);
-                if (null !== $rememberedData) {
-                    if ($rememberedData->getRemember()) {
-                        $filterData = $filter->deserialize($rememberedData->getData());
-                    }
-                    // it is possible we have remembered something that is currently not visible on the form
-                    // this item should not be used in the filter.
-                    if( $filterData ) {
-                        foreach( $filterData as $property => $value ) {
-                            if( !$dataForm->has( $property ) ){
-                                unset( $filterData->$property );
-                            }
+                // it is possible we have remembered something that is currently not visible on the form
+                // this item should not be used in the filter.
+                if ($filterData) {
+                    foreach ($filterData as $property => $value) {
+                        if (!$dataForm->has($property)) {
+                            unset($filterData->$property);
                         }
                     }
                 }
+            }
 
-                // HACK: Not sure why, but without this, the form, though filtering correctly, will show up empty
-                $refl = new \ReflectionProperty('Symfony\Component\Form\FormConfigBuilder', 'dataLocked');
-                $refl->setAccessible(true);
-                $refl->setValue($dataForm->getConfig(), false);
-                $dataForm->setData($filterData);
-                $refl->setValue($dataForm->getConfig(), true);
-                // /HACK
+            // HACK: Not sure why, but without this, the form, though filtering correctly, will show up empty
+            $refl = new \ReflectionProperty('Symfony\Component\Form\FormConfigBuilder', 'dataLocked');
+            $refl->setAccessible(true);
+            $refl->setValue($dataForm->getConfig(), false);
+            $dataForm->setData($filterData);
+            $refl->setValue($dataForm->getConfig(), true);
+            // /HACK
 
-                $e->getForm()->add($dataForm);
+            $e->getForm()->add($dataForm);
 
 //                $choiceList = $filter->getPresetChoiceList($e->getForm()->get('data'));
 //                $e->getForm()->add($factory->createNamed('preset', 'choice', null, array(
@@ -96,8 +96,8 @@ class FilterType extends AbstractType
 //                $e->getForm()->add($factory->createNamed('savePreset', 'hidden', null, array('auto_initialize' => false)));
 //                $e->getForm()->add($factory->createNamed('loadPreset', 'hidden', null, array('auto_initialize' => false)));
 
-                $e->setData(array('data' => $filterData));
-            });
+            $e->setData(array('data' => $filterData));
+        });
 //
 //
 //        if ($options['use_remember']) {
@@ -107,13 +107,13 @@ class FilterType extends AbstractType
 //            ));
 //        }
 
-        $builder->add('filter', 'submit');
-        $builder->add('reset', 'submit');
+        $builder->add('filter', 'submit', ['label' => 'filter.filter']);
+        $builder->add('reset', 'submit', ['label' => 'filter.reset']);
 
-        $builder->addEventListener(FormEvents::POST_SUBMIT, function(FormEvent $e) use ($filter, $filterType) {
-                $data = $e->getData();
-                $filter->saveFilterValues($data, $e->getForm()->get('data'));
-            });
+        $builder->addEventListener(FormEvents::POST_SUBMIT, function (FormEvent $e) use ($filter, $filterType) {
+            $data = $e->getData();
+            $filter->saveFilterValues($data, $e->getForm()->get('data'));
+        });
     }
 
     public function getParent()
@@ -149,7 +149,7 @@ class FilterType extends AbstractType
         $column = 1;
 
         $todo = $view->children['data']->children;
-        foreach($view->children['data']->children as $name => $child) {
+        foreach ($view->children['data']->children as $name => $child) {
             if (in_array('choice', $child->vars['block_prefixes']) && $child->vars['multiple']) {
                 $view->children['data']->vars['columns'][] = array($child);
 
@@ -158,7 +158,7 @@ class FilterType extends AbstractType
         }
 
         $counter = 0;
-        foreach($todo as $child) {
+        foreach ($todo as $child) {
             $view->children['data']->vars['columns'][$counter][] = $child;
             if (count($view->children['data']->vars['columns'][$counter]) >= count($todo) / 3) {
                 array_splice($view->children['data']->vars['columns'], ++$counter, 0, array(array()));
