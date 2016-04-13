@@ -7,7 +7,6 @@ use Samson\Bundle\FilterBundle\Filter\FieldSearch;
 /**
  * @Annotation
  */
-class Boolean extends FieldSearch
-{
-    public $skiponfalse = false;
+class DateTimeFieldSearch extends Integer {
+	
 }

@@ -8,7 +8,7 @@ use Samson\Bundle\FilterBundle\Filter\FieldFilter;
 class DateRangeFilter extends FieldFilter
 {
 
-    public function filter($field, $value, DateRange $stringSearch)
+    public function filter($field, $value, DateRangeFieldSearch $stringSearch)
     {
         $start = $end = null;
         if (null !== $value) {

@@ -7,7 +7,7 @@ use Samson\Bundle\FilterBundle\Filter\FieldSearch;
 /**
  * @Annotation
  */
-class DateTimeRange extends FieldSearch
+class NotNullFieldSearch extends FieldSearch
 {
-    
+    public $skiponfalse = false;
 }

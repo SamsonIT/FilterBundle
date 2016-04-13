@@ -2,9 +2,9 @@
 
 namespace Samson\Bundle\FilterBundle\Tests\Filter\Search;
 
+use Samson\Bundle\FilterBundle\Filter\Search\StringFieldSearch;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Samson\Bundle\FilterBundle\Filter\Search\StringFilter;
-use Samson\Bundle\FilterBundle\Filter\Search\String;
 
 class StringFilterTest extends FieldFilterTest
 {
@@ -27,10 +27,10 @@ class StringFilterTest extends FieldFilterTest
     public function data()
     {
         return array(
-            array('name', 'Sam', new String(array('value' => 'begins_with')), 'name LIKE :f0', array('f0' => 'Sam%')),
-            array('name', 'Samson IT', new String(array('value' => 'equals')), 'name = :f0', array('f0' => 'Samson IT')),
-            array('name', 'n IT', new String(array('value' => 'ends_with')), 'name LIKE :f0', array('f0' => '%n IT')),
-            array('name', 'mso', new String(array('value' => 'contains')), 'name LIKE :f0', array('f0' => '%mso%')),
+            array('name', 'Sam', new StringFieldSearch(array('value' => 'begins_with')), 'name LIKE :f0', array('f0' => 'Sam%')),
+            array('name', 'Samson IT', new StringFieldSearch(array('value' => 'equals')), 'name = :f0', array('f0' => 'Samson IT')),
+            array('name', 'n IT', new StringFieldSearch(array('value' => 'ends_with')), 'name LIKE :f0', array('f0' => '%n IT')),
+            array('name', 'mso', new StringFieldSearch(array('value' => 'contains')), 'name LIKE :f0', array('f0' => '%mso%')),
         );
     }
 }

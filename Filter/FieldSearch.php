@@ -10,7 +10,13 @@ abstract class FieldSearch
 
     public function filteredBy()
     {
-        return get_class($this).'Filter';
+        $className = get_class($this) . 'Filter';
+
+        if (!class_exists($className)) {
+            // pre 4.0 the FieldSearch filters were named without FieldSearch.
+            $className = str_replace('FieldSearch', '', $className);
+        }
+        return $className;
     }
 
     public final function __construct(array $data)
@@ -50,8 +56,8 @@ abstract class FieldSearch
     /**
      * Error handler for unknown property mutator in Annotation class.
      *
-     * @param string $name  Unkown property name
-     * @param mixed  $value Property value
+     * @param string $name Unkown property name
+     * @param mixed $value Property value
      */
     public function __set($name, $value)
     {

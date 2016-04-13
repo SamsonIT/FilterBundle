@@ -9,7 +9,7 @@ use Samson\Bundle\FilterBundle\Filter\Search\String;
 /**
  * @Annotation
  */
-class Instance extends FieldSearch
+class InstanceFieldSearch extends FieldSearch
 {
     
 }

@@ -9,7 +9,7 @@ use Samson\Bundle\FilterBundle\Filter\FieldFilter;
 class ChoiceListFilter extends FieldFilter
 {
 
-    public function filter($field, $value, ChoiceList $stringSearch)
+    public function filter($field, $value, ChoiceListFieldSearch $stringSearch)
     {
         if (null === $value) {
             return;

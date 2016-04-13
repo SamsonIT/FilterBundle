@@ -8,7 +8,7 @@ use Samson\Bundle\FilterBundle\Filter\FieldFilter;
 class CallbackFilter extends FieldFilter
 {
 
-    public function filter($field, $value, Callback $callbackSearch)
+    public function filter($field, $value, CallbackFieldSearch $callbackSearch)
     {
         $callback = $callbackSearch->callback;
 

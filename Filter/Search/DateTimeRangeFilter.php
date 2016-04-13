@@ -8,7 +8,7 @@ use Samson\Bundle\FilterBundle\Filter\FieldFilter;
 class DateTimeRangeFilter extends FieldFilter
 {
 
-    public function filter($field, $value, DateTimeRange $stringSearch)
+    public function filter($field, $value, DateTimeRangeFieldSearch $stringSearch)
     {
 
         if (@$value['datetime_start'] && @$value['datetime_end']) {

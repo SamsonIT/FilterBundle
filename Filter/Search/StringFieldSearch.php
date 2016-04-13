@@ -7,12 +7,14 @@ use Samson\Bundle\FilterBundle\Filter\FieldSearch;
 /**
  * @Annotation
  */
-class Callback extends FieldSearch
+class StringFieldSearch extends FieldSearch
 {
-    public $callback = null;
-    
+    public $type = 'contains';
+
+    public $multiterm = false;
+
     public function getDefaultValue()
     {
-        return 'callback';
+        return 'type';
     }
 }

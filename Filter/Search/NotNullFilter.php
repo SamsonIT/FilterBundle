@@ -8,7 +8,7 @@ use Samson\Bundle\FilterBundle\Filter\FieldFilter;
 class NotNullFilter extends FieldFilter
 {
 
-    public function filter($field, $value, NotNull $notNullSearch)
+    public function filter($field, $value, NotNullFieldSearch $notNullSearch)
     {
         if($value === null){
             return null;

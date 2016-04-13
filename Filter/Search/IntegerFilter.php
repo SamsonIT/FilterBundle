@@ -8,7 +8,7 @@ use Samson\Bundle\FilterBundle\Filter\FieldFilter;
 class IntegerFilter extends FieldFilter
 {
 
-    public function filter($field, $value, Integer $integerSearch)
+    public function filter($field, $value, IntegerFieldSearch $integerSearch)
     {
         if ($value === '' || null === $value) {
             return;

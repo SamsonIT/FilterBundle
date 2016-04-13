@@ -7,7 +7,7 @@ use Samson\Bundle\FilterBundle\Filter\FieldSearch;
 /**
  * @Annotation
  */
-class DateRange extends FieldSearch
+class DateRangeFieldSearch extends FieldSearch
 {
     
 }

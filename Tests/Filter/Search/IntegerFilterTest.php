@@ -2,9 +2,9 @@
 
 namespace Samson\Bundle\FilterBundle\Tests\Filter\Search;
 
+use Samson\Bundle\FilterBundle\Filter\Search\IntegerFieldSearch;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Samson\Bundle\FilterBundle\Filter\Search\IntegerFilter;
-use Samson\Bundle\FilterBundle\Filter\Search\Integer;
 
 class IntegerFilterTest extends FieldFilterTest
 {
@@ -28,11 +28,11 @@ class IntegerFilterTest extends FieldFilterTest
     public function data()
     {
         return array(
-            array('id', '4', new Integer(array('value' => 'equals')), 'id = :f0', array('f0' => '4')),
-            array('id', '4', new Integer(array('value' => 'is not equal to')), 'id <> :f0', array('f0' => '4')),
-            array('test', '100', new Integer(array('value' => '>')), 'test > :f0', array('f0' => '100')),
-            array('id', '4', new Integer(array('value' => '<=')), 'id <= :f0', array('f0' => '4')),
-            array('id', '4', new Integer(array('value' => 'is greater than or equal to')), 'id >= :f0', array('f0' => '4')),
+            array('id', '4', new IntegerFieldSearch(array('value' => 'equals')), 'id = :f0', array('f0' => '4')),
+            array('id', '4', new IntegerFieldSearch(array('value' => 'is not equal to')), 'id <> :f0', array('f0' => '4')),
+            array('test', '100', new IntegerFieldSearch(array('value' => '>')), 'test > :f0', array('f0' => '100')),
+            array('id', '4', new IntegerFieldSearch(array('value' => '<=')), 'id <= :f0', array('f0' => '4')),
+            array('id', '4', new IntegerFieldSearch(array('value' => 'is greater than or equal to')), 'id >= :f0', array('f0' => '4')),
         );
     }
 }

@@ -8,7 +8,7 @@ use Samson\Bundle\FilterBundle\Filter\FieldFilter;
 class BooleanFilter extends FieldFilter
 {
 
-    public function filter($field, $value, Boolean $booleanSearch)
+    public function filter($field, $value, BooleanFieldSearch $booleanSearch)
     {
         if (null === $value) {
             return;

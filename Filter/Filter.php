@@ -413,8 +413,8 @@ class Filter
         $qb = $er->createQueryBuilder('p');
         $qb->where($qb->expr()->andx(
             $qb->expr()->eq('p.filterType', '?1'), $qb->expr()->orx(
-                $qb->expr()->eq('p.public', '?2'), $qb->expr()->eq('p.user', '?3')
-            )
+            $qb->expr()->eq('p.public', '?2'), $qb->expr()->eq('p.user', '?3')
+        )
         ));
         $qb->setParameters(array(1 => $filterName, 2 => true, 3 => $user->getId()));
 

@@ -2,9 +2,8 @@
 
 namespace Samson\Bundle\FilterBundle\Tests\Filter\Search;
 
-use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+use Samson\Bundle\FilterBundle\Filter\Search\DateFieldSearch;
 use Samson\Bundle\FilterBundle\Filter\Search\DateFilter;
-use Samson\Bundle\FilterBundle\Filter\Search\Date;
 
 class DateFilterTest extends FieldFilterTest
 {
@@ -27,8 +26,8 @@ class DateFilterTest extends FieldFilterTest
     public function data()
     {
         return array(
-            array('startTime', '2010-01-01', new Date(array('value' => 'equals')), 'DATE(startTime) = :f0', array('f0' => '2010-01-01')),
-            array('startTime', '2011-10-07', new Date(array('value' => 'is not equal to')), 'DATE(startTime) <> :f0', array('f0' => '2011-10-07')),
+            array('startTime', '2010-01-01', new DateFieldSearch(array('value' => 'equals')), 'DATE(startTime) = :f0', array('f0' => '2010-01-01')),
+            array('startTime', '2011-10-07', new DateFieldSearch(array('value' => 'is not equal to')), 'DATE(startTime) <> :f0', array('f0' => '2011-10-07')),
         );
     }
 }

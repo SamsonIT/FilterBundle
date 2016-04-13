@@ -7,12 +7,7 @@ use Samson\Bundle\FilterBundle\Filter\FieldSearch;
 /**
  * @Annotation
  */
-class Integer extends FieldSearch
+class DateFieldSearch extends IntegerFieldSearch
 {
-    public $type = 'equals';
 
-    public function getDefaultValue()
-    {
-        return 'type';
-    }
 }
