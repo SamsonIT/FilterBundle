@@ -7,11 +7,11 @@ Step1: your FilterData-object
 Filterparams are defined in a FilterData-object, it's a POPO:
 
 ```php
-namespace Shifter\ShiftBundle\Form\Filter;
+namespace Foo\Bar\Form\Filter;
 
 use Samson\FilterBundle\Filter\Search as Filter;
 
-class ShiftFilter {
+class CompanyFilter {
   /**
    * @Filter\IntegerFieldSearch(propertyPath="id")
    */
