@@ -25,4 +25,4 @@ After:
 @Filter\IntegerSearchField()
 ```
 
-This is appicable for all Filter-annotations.
+This is applicable for all Filter-annotations.
