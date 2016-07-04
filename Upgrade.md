@@ -10,7 +10,7 @@ Certain annotation-classes have to be renamed to be compatible with PHP7:
 - Integer
 - String
 
-We prepended all Filter-annotations to *SearchField.
+We prepended all Filter-annotations to *FieldSearch.
 
 
 Before:
@@ -22,7 +22,7 @@ Before:
 After:
 
 ```
-@Filter\IntegerSearchField()
+@Filter\IntegerFieldSearch()
 ```
 
 This is applicable for all Filter-annotations.
