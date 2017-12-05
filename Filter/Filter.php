@@ -232,8 +232,8 @@ class Filter
             if (null === $expr)
                 continue;
 
-            foreach ($parameters as $key => $value) {
-                $qb->setParameter($key, $value);
+            foreach ($parameters as $k => $v) {
+                $qb->setParameter($k, $v);
             }
 
             if ($having) {
